@@ -1,4 +1,4 @@
 [connections]
-accountname = 
-username = 
-password = 
+accountname = ${{ secrets.SNOWSQL_DEV_ACCOUNT }}
+username = ${{ secrets.SNOWSQL_DEV_USERNAME }}
+password = ${{ secrets.SNOWSQL_DEV_PASSWORD }}
