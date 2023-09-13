@@ -1,8 +1,44 @@
-
-run-name: snowflake migration
+name: Snowflake DDL and Data Migration
 
 on:
-  workflow_run:
-    branches: 
-      - main
+  push:
+    branches:
+      - main 
+
+jobs:
+  migrate_ddl_and_data:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Set up SnowSQL
+        run: |
+          curl -o snowsql-<version>-linux_x86_64.tgz https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1/linux_x86_64/snowsql-<version>-linux_x86_64.tgz
+          tar -xzf snowsql-<version>-linux_x86_64.tgz
+          chmod +x snowsql
+          mv snowsql /usr/local/bin
+        env:
+          SNOWSQL_DEST: /usr/local/bin/snowsql
+          SNOWSQL_VERSION: <desired_version>
+
+      - name: Execute DDL Scripts
+        run: |
+          snowsql -c snowsql_config_dev -f ddl_scripts/create_tables.sql
+          snowsql -c snowsql_config_dev -f ddl_scripts/modify_tables.sql
+          # snowsql -c snowsql_config_dev -f ddl_scripts/delete_tables.sql
+        env:
+          SNOWSQL_PWD: ${{ secrets.SNOWSQL_DEV_PASSWORD }}
+          SNOWSQL_USERNAME: ${{ secrets.SNOWSQL_DEV_USERNAME }}
+          SNOWSQL_ACCOUNT: ${{ secrets.SNOWSQL_DEV_ACCOUNT }}
+
+      - name: Execute Data Migration Script
+        run: |
+          snowsql -c snowsql_config_dev -f data_migration/migrate_data_dev_to_test.sql
+        env:
+          SNOWSQL_PWD: ${{ secrets.SNOWSQL_DEV_PASSWORD }}
+          SNOWSQL_USERNAME: ${{ secrets.SNOWSQL_DEV_USERNAME }}
+          SNOWSQL_ACCOUNT: ${{ secrets.SNOWSQL_DEV_ACCOUNT }}
+
 
