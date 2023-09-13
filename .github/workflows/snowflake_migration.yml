@@ -1,0 +1,8 @@
+
+run-name: snowflake migration
+
+on:
+  workflow_run:
+    branches: 
+      - main
+
